@@ -17,6 +17,7 @@ const addContact = async (req, res, next) => {
   } catch (error) {
     if (error.message.includes("Cast to ObjectId failed")) {
       error.status = 400;
+      console.log(error);
     }
     next(error);
   }
