@@ -3,11 +3,12 @@ const { NotFound } = require("http-errors");
 
 const addContact = async (req, res, next) => {
   try {
-    const result = await Contact.create(req.body);
+    const { _id } = req.user;
+    const result = await Contact.create({ ...req.body, owner: _id });
     if (!result) {
       throw new NotFound("Not found");
     }
-    res.json({
+    res.status(201).json({
       status: "success",
       code: 201,
       data: {
@@ -17,7 +18,6 @@ const addContact = async (req, res, next) => {
   } catch (error) {
     if (error.message.includes("Cast to ObjectId failed")) {
       error.status = 400;
-      console.log(error);
     }
     next(error);
   }
