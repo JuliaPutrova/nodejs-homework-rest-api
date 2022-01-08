@@ -27,9 +27,6 @@ const auth = async (req, res, next) => {
       next(error);
     }
   } catch (error) {
-    if (error.message === "Invalid signature") {
-      error.status = 401;
-    }
     next(error);
   }
 };
