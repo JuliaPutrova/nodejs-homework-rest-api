@@ -1,8 +1,8 @@
 const { User } = require("../../model");
 const { Conflict } = require("http-errors");
-const { json } = require("express");
-const bcrypt = require("bcryptjs");
 const gravatar = require("gravatar");
+const { v4 } = require("uuid");
+const { sendEmail } = require("../../helpers");
 
 const register = async (req, res, next) => {
   try {
@@ -12,15 +12,20 @@ const register = async (req, res, next) => {
       throw new Conflict("Email in use");
     }
     const avatarURL = gravatar.url(email);
+    const verificationToken = v4();
 
-    // const hashPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
-    // await User.create({ email, password: hashPassword, avatarUrl });
-
-    const newUser = new User({ email, avatarURL });
+    const newUser = new User({ email, avatarURL, verificationToken });
     newUser.setPassword(password);
 
-    newUser.save();
+    await newUser.save();
 
+    const mail = {
+      to: email,
+      subject: "Подтверждение email",
+      html: `<a target="_blank" href="http://localhost:3000/api/users/verify/${verificationToken}">Подтвердить email</a>`,
+    };
+
+    await sendEmail(mail);
     res.status(201).json({
       status: "success",
       code: 201,
@@ -28,6 +33,7 @@ const register = async (req, res, next) => {
         user: {
           email,
           avatarURL,
+          verificationToken,
         },
       },
     });
